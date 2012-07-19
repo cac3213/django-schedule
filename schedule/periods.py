@@ -1,4 +1,5 @@
 import datetime
+import pytz
 from django.db.models.query import QuerySet
 from django.template.defaultfilters import date
 from django.utils.translation import ugettext, ugettext_lazy as _
@@ -138,7 +139,7 @@ class Period(object):
 class Year(Period):
     def __init__(self, events, date=None, parent_persisted_occurrences=None):
         if date is None:
-            date = datetime.datetime.now()
+            date = datetime.datetime.now(pytz.utc) #convert it to tz aware
         start, end = self._get_year_range(date)
         super(Year, self).__init__(events, start, end, parent_persisted_occurrences)
 
@@ -157,8 +158,10 @@ class Year(Period):
     def _get_year_range(self, year):
         start = datetime.datetime(year.year, datetime.datetime.min.month,
             datetime.datetime.min.day)
+        start = pytz.utc.localize(start) #convert it to tz aware
         end = datetime.datetime(year.year+1, datetime.datetime.min.month,
             datetime.datetime.min.day)
+        end = pytz.utc.localize(end) #convert it to tz aware
         return start, end
 
     def __unicode__(self):
@@ -174,7 +177,7 @@ class Month(Period):
     def __init__(self, events, date=None, parent_persisted_occurrences=None,
         occurrence_pool=None):
         if date is None:
-            date = datetime.datetime.now()
+            date = datetime.datetime.now(pytz.utc) #convert it to tz aware
         start, end = self._get_month_range(date)
         super(Month, self).__init__(events, start, end,
             parent_persisted_occurrences, occurrence_pool)
@@ -216,6 +219,7 @@ class Month(Period):
         year = month.year
         month = month.month
         start = datetime.datetime.min.replace(year=year, month=month)
+        start = pytz.utc.localize(start) #convert it to tz aware
         if month == 12:
             end = start.replace(month=1, year=year+1)
         else:
@@ -239,7 +243,7 @@ class Week(Period):
     def __init__(self, events, date=None, parent_persisted_occurrences=None,
         occurrence_pool=None):
         if date is None:
-            date = datetime.datetime.now()
+            date = datetime.datetime.now(pytz.utc)
         start, end = self._get_week_range(date)
         super(Week, self).__init__(events, start, end,
             parent_persisted_occurrences, occurrence_pool)
@@ -266,6 +270,8 @@ class Week(Period):
             week = week.date()
         # Adjust the start datetime to midnight of the week datetime
         start = datetime.datetime.combine(week, datetime.time.min)
+        start = pytz.utc.localize(start) #convert it to tz aware
+        #import pdb;pdb.set_trace()
         # Adjust the start datetime to Monday or Sunday of the current week
         sub_days = 0
         if FIRST_DAY_OF_WEEK == 1:
@@ -293,7 +299,7 @@ class Day(Period):
     def __init__(self, events, date=None, parent_persisted_occurrences=None,
         occurrence_pool=None):
         if date is None:
-            date = datetime.datetime.now()
+            date = datetime.datetime.now(pytz.utc) #convert it to tz aware
         start, end = self._get_day_range(date)
         super(Day, self).__init__(events, start, end,
             parent_persisted_occurrences, occurrence_pool)
@@ -302,6 +308,7 @@ class Day(Period):
         if isinstance(date, datetime.datetime):
             date = date.date()
         start = datetime.datetime.combine(date, datetime.time.min)
+        start = pytz.utc.localize(start) #convert it to tz aware
         end = start + datetime.timedelta(days=1)
         return start, end
 
