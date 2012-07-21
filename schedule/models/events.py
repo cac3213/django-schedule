@@ -12,6 +12,7 @@ from dateutil import rrule
 from schedule.models.rules import Rule
 from schedule.models.calendars import Calendar
 from schedule.utils import OccurrenceReplacer
+import pytz
 
 class EventManager(models.Manager):
 
@@ -148,7 +149,7 @@ class Event(models.Model):
         """
 
         if after is None:
-            after = datetime.datetime.now()
+            after = datetime.datetime.now(pytz.utc)
         rule = self.get_rrule_object()
         if rule is None:
             if self.end > after:
